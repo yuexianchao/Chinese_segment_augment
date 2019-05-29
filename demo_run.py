@@ -57,7 +57,7 @@ if __name__ == "__main__":
     load_data_2_root(data)
 
     # 定义取TOP5个
-    topN = 5
+    topN = 10
     result, add_word = root.find_word(topN)
     # 如果想要调试和选择其他的阈值，可以print result来调整
     # print("\n----\n", result)

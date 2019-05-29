@@ -9,7 +9,7 @@ import pickle
 
 
 def get_stopwords():
-    with open('data/stopword.txt', 'r') as f:
+    with open('data/stopword', 'r') as f:
         stopword = [line.strip() for line in f]
     return set(stopword)
 
