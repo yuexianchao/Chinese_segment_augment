@@ -55,12 +55,12 @@ def load_data_2_root(data):
     pool = Pool(24)
     print('poll start')
     ngrams_items = pool.map(handel_data,tqdm(dl))
+    pool.close()
+    pool.join()
     print('poll stop')
     for ngrams in tqdm(ngrams_items):
         for d in ngrams:
             root.add(d)
-    pool.close()
-    pool.join()
     # for word_list in data:
     #     # tmp 表示每一行自由组合后的结果（n gram）
     #     # tmp: [['它'], ['是'], ['小'], ['狗'], ['它', '是'], ['是', '小'], ['小', '狗'], ['它', '是', '小'], ['是', '小', '狗']]
