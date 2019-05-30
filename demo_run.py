@@ -11,7 +11,10 @@ import jieba
 from model import TrieNode
 from utils import get_stopwords, load_dictionary, generate_ngram, save_model, load_model
 from config import basedir
-
+import time
+from pyquery import PyQuery
+import jieba.analyse
+import jieba.posseg  #词性判断
 
 def load_data(filename, stopwords):
     """
@@ -23,7 +26,7 @@ def load_data(filename, stopwords):
     data = []
     with open(filename, 'r') as f:
         for line in f:
-            word_list = [x for x in jieba.cut(line.strip(), cut_all=False) if x not in stopwords]
+            word_list = [x for x in jieba.cut(line.strip(), cut_all=False) if x not in stopwords and x.strip() > '']
             if word_list or len(word_list) > 0:
                 data.append(word_list)
     if data.__len__() == 0:
@@ -56,7 +59,11 @@ def handel_data(word_lists):
 
 def load_data_2_root(data):
     print('------> 插入节点')
-    dl = np.array_split(data, 100)
+    pool_cnt = data.__len__()
+    # if pool_cnt > 100:
+    #     pool_cnt = 100
+
+    dl = np.array_split(data, pool_cnt)
     pool = Pool(24)
     print('poll start')
     ngrams_items = pool.map(handel_data, tqdm(dl))
@@ -66,6 +73,7 @@ def load_data_2_root(data):
     for ngrams in tqdm(ngrams_items):
         for d in ngrams:
             root.add(d)
+
     # for word_list in data:
     #     # tmp 表示每一行自由组合后的结果（n gram）
     #     # tmp: [['它'], ['是'], ['小'], ['狗'], ['它', '是'], ['是', '小'], ['小', '狗'], ['它', '是', '小'], ['是', '小', '狗']]
@@ -75,7 +83,19 @@ def load_data_2_root(data):
     print('------> 插入成功')
 
 
+def tf_idf(words, n):
+    print('以下是tf-tdf算法------------TF-IDF关键词抽取，需要使用停用词库-------------------------------------')
+    keywords_tf = jieba.analyse.extract_tags(words, topK=n, withWeight=True, allowPOS=(
+        'ns', 'n', 'vn', 'v'))  # tf-tdf算法
+    for item in keywords_tf:
+        print(item[0], item[1], jieba.posseg.lcut(item[0])[0])
+    return keywords_tf
+
+
 if __name__ == "__main__":
+    global star_time
+    star_time = time.time()
+    print('开始 ==', star_time)
     root_name = basedir + "/data/root.pkl"
     stopwords = get_stopwords()
     if os.path.exists(root_name):
@@ -86,11 +106,16 @@ if __name__ == "__main__":
         root = TrieNode('*', word_freq)
         save_model(root, root_name)
 
+    print('读取stopwords  root.pkl==', time.time() - star_time)
+
     # 加载新的文章
-    filename = 'data/demo.txt'
+    filename = 'data/demo_old.txt'
     data = load_data(filename, stopwords)
+    print('加载新的文章 ==', time.time() - star_time)
+
     # 将新的文章插入到Root中
     load_data_2_root(data)
+    print('将新的文章插入到Root中 ==', time.time() - star_time)
 
     # 定义取TOP5个
     topN = 10
@@ -102,13 +127,25 @@ if __name__ == "__main__":
     for word, score in add_word.items():
         print(word + ' ---->  ', score)
     print('#############################')
+    print('topN ==', time.time() - star_time)
 
     # 前后效果对比
-    test_sentence = ''.join(open('stopword_all', encoding='UTF-8').readlines())
+    test_sentence = ''.join(open(filename, encoding='UTF-8').readlines())
     print('添加前：')
-    print("".join([(x + ',') for x in jieba.cut(test_sentence, cut_all=False) if x not in stopwords]))
+    words = "".join(
+        [(x + ',') for x in jieba.cut(test_sentence, cut_all=False) if x not in stopwords and x.strip() > ''])
+    # print(words)
+    tf_idf(words, 20)
+    print('添加前分词 ==', time.time() - star_time)
 
+    # 添加新词
     for word in add_word.keys():
         jieba.add_word(word)
     print("添加后：")
-    print("".join([(x + ',') for x in jieba.cut(test_sentence, cut_all=False) if x not in stopwords]))
+
+    words = "".join(
+        [(x + ',') for x in jieba.cut(test_sentence, cut_all=False) if x not in stopwords and x.strip() > ''])
+    # print(words)
+    tf_idf(words, 20)
+
+    print('添加后分词 ==', time.time() - star_time)
