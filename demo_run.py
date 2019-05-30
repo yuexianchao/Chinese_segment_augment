@@ -27,15 +27,40 @@ def load_data(filename, stopwords):
             data.append(word_list)
     return data
 
+# from nltk import ngrams
+# sentence = 'this is a foo bar sentences and i want to ngramize it'
+# n = 6
+# sixgrams = ngrams(sentence.split(), n)
+# for grams in sixgrams:
+#     print(grams)
+import numpy as np
+from multiprocessing import Pool
+from tqdm import tqdm
+
+def handel_data(word_lists):
+    _ngrams =[]
+    for word_list in word_lists:
+        _ngrams.append(generate_ngram(word_list, 3))
+    return np.concatenate(_ngrams)
 
 def load_data_2_root(data):
     print('------> 插入节点')
-    for word_list in data:
-        # tmp 表示每一行自由组合后的结果（n gram）
-        # tmp: [['它'], ['是'], ['小'], ['狗'], ['它', '是'], ['是', '小'], ['小', '狗'], ['它', '是', '小'], ['是', '小', '狗']]
-        ngrams = generate_ngram(word_list, 3)
+    dl = np.array_split(data,100)
+    pool = Pool(24)
+    print('poll start')
+    ngrams_items = pool.map(handel_data,tqdm(dl))
+    print('poll stop')
+    for ngrams in tqdm(ngrams_items):
         for d in ngrams:
             root.add(d)
+    pool.close()
+    pool.join()
+    # for word_list in data:
+    #     # tmp 表示每一行自由组合后的结果（n gram）
+    #     # tmp: [['它'], ['是'], ['小'], ['狗'], ['它', '是'], ['是', '小'], ['小', '狗'], ['它', '是', '小'], ['是', '小', '狗']]
+    #     ngrams = generate_ngram(word_list, 3)
+    #     for d in ngrams:
+    #         root.add(d)
     print('------> 插入成功')
 
 
