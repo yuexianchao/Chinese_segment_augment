@@ -24,7 +24,8 @@ def load_data(filename, stopwords):
     with open(filename, 'r') as f:
         for line in f:
             word_list = [x for x in jieba.cut(line.strip(), cut_all=False) if x not in stopwords]
-            data.append(word_list)
+            if word_list:
+                data.append(word_list)
     return data
 
 # from nltk import ngrams
