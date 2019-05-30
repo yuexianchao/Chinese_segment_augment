@@ -45,7 +45,7 @@ def handel_data(word_lists):
     if _ngrams:
         return np.concatenate(_ngrams)
     else:
-        print('_ngrams=======null')
+        print('_ngrams=======null',word_lists)
         return [[]]
 
 def load_data_2_root(data):
