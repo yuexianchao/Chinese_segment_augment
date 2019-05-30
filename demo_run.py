@@ -24,9 +24,12 @@ def load_data(filename, stopwords):
     with open(filename, 'r') as f:
         for line in f:
             word_list = [x for x in jieba.cut(line.strip(), cut_all=False) if x not in stopwords]
-            if word_list:
+            if word_list or len(word_list) > 0:
                 data.append(word_list)
+    if data.__len__() == 0:
+        print('no data')
     return data
+
 
 # from nltk import ngrams
 # sentence = 'this is a foo bar sentences and i want to ngramize it'
@@ -38,23 +41,25 @@ import numpy as np
 from multiprocessing import Pool
 from tqdm import tqdm
 
+
 def handel_data(word_lists):
-    _ngrams =[]
+    _ngrams = []
     for word_list in word_lists:
         _ngrams.append(generate_ngram(word_list, 3))
         # print('_ngrams=====',_ngrams)
     if _ngrams:
         return np.concatenate(_ngrams)
     else:
-        print('_ngrams=======null',word_lists)
+        print('_ngrams=======null', word_lists)
         return [[]]
+
 
 def load_data_2_root(data):
     print('------> 插入节点')
-    dl = np.array_split(data,100)
+    dl = np.array_split(data, 100)
     pool = Pool(24)
     print('poll start')
-    ngrams_items = pool.map(handel_data,tqdm(dl))
+    ngrams_items = pool.map(handel_data, tqdm(dl))
     pool.close()
     pool.join()
     print('poll stop')
@@ -99,7 +104,7 @@ if __name__ == "__main__":
     print('#############################')
 
     # 前后效果对比
-    test_sentence =''.join( open('stopword_all', encoding='UTF-8').readlines())
+    test_sentence = ''.join(open('stopword_all', encoding='UTF-8').readlines())
     print('添加前：')
     print("".join([(x + ',') for x in jieba.cut(test_sentence, cut_all=False) if x not in stopwords]))
 
