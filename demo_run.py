@@ -41,6 +41,7 @@ def handel_data(word_lists):
     _ngrams =[]
     for word_list in word_lists:
         _ngrams.append(generate_ngram(word_list, 3))
+        print('_ngrams=====',_ngrams)
     return np.concatenate(_ngrams)
 
 def load_data_2_root(data):
